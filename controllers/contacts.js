@@ -4,7 +4,12 @@ const { HttpError } = require("../helpers");
 
 const getAllContacts = async (req, res, next) => {
   try {
-    const result = await Contact.find();
+    const {_id: owner} = req.user;
+    const {page = 1, limit = 10, favorite} = req.query;
+    const skip = (page - 1) * limit;
+
+    const result = await Contact.find({owner}, "-createdAt, -updatedAt", {skip, limit}).populate("owner", "email");
+
     res.json(result);
   } catch (error) {
     next(error);
@@ -33,7 +38,8 @@ const postContacts = async (req, res, next) => {
       throw HttpError(400, "Missing required name field")
     }
     const body = req.body;
-    const result = await Contact.create(body);
+    const {_id: owner} = req.user;
+    const result = await Contact.create({...body, owner});
     res.status(201).json(result);
   } catch (error) {
     next(error);
