@@ -10,7 +10,12 @@ const getAllContacts = async (req, res, next) => {
 
     const result = await Contact.find({owner}, "-createdAt, -updatedAt", {skip, limit}).populate("owner", "email");
 
-    res.json(result);
+    if(favorite !== undefined) {
+        const contactFavorite = result.filter(e => e.favorite.toString() === favorite);
+        return res.json(contactFavorite);
+      } else {
+        return res.json(result);
+      }
   } catch (error) {
     next(error);
   }
